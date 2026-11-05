@@ -1,0 +1,131 @@
+{
+  "uniform-portrait": {
+    "size": [
+      1161,
+      1355
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "alpha_bbox": [
+      24,
+      20,
+      1143,
+      1355
+    ],
+    "transparent_pixels": 614514,
+    "opaque_pixels": 1405,
+    "partial_alpha_pixels": 957236
+  },
+  "hood-portrait": {
+    "size": [
+      1169,
+      1345
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "alpha_bbox": [
+      0,
+      8,
+      1137,
+      1345
+    ],
+    "transparent_pixels": 612140,
+    "opaque_pixels": 945,
+    "partial_alpha_pixels": 959220
+  },
+  "school-stage": {
+    "size": [
+      1672,
+      941
+    ],
+    "alpha_range": [
+      255,
+      255
+    ],
+    "alpha_bbox": [
+      0,
+      0,
+      1672,
+      941
+    ],
+    "transparent_pixels": 0,
+    "opaque_pixels": 1573352,
+    "partial_alpha_pixels": 0
+  },
+  "uniform-face": {
+    "source": "uniform-portrait.png",
+    "crop": [
+      290,
+      0,
+      890,
+      600
+    ],
+    "sizes": [
+      128,
+      25
+    ],
+    "resampling": "NEAREST",
+    "purpose": "technical square roster/HUD crop; no artistic retouching"
+  },
+  "hood-face": {
+    "source": "hood-portrait.png",
+    "crop": [
+      300,
+      0,
+      900,
+      600
+    ],
+    "sizes": [
+      128,
+      25
+    ],
+    "resampling": "NEAREST",
+    "purpose": "technical square roster/HUD crop; no artistic retouching"
+  },
+  "lifeuniform-face": {
+    "source": "work/pangyo-web/dist/assets/fighters/lifeuniform-face.png",
+    "source_size": [
+      25,
+      25
+    ],
+    "source_sha256": "5b7c671498e23dbcc5b59d78b958e0a3551196ea4abd13adbd188e54bd9db6b1",
+    "sizes": [
+      128,
+      25
+    ],
+    "resampling": "NEAREST",
+    "purpose": "preserve existing character identity; technical raster size adaptation only"
+  },
+  "ryu-face": {
+    "source": "work/pangyo-web/dist/assets/fighters/ryu-face.png",
+    "source_size": [
+      25,
+      25
+    ],
+    "source_sha256": "62c32ead7d4f0a6e5e88d68ed33cff83ede21fb6d466bd28934b56542fbe9301",
+    "sizes": [
+      128,
+      25
+    ],
+    "resampling": "NEAREST",
+    "purpose": "preserve existing character identity; technical raster size adaptation only"
+  },
+  "sakura-face": {
+    "source": "work/pangyo-web/dist/assets/fighters/sakura-face.png",
+    "source_size": [
+      25,
+      25
+    ],
+    "source_sha256": "58a88aed8184c48acc231bbd3fe752797e3ec6cfbc7c21bb074b6d2a64e19d56",
+    "sizes": [
+      128,
+      25
+    ],
+    "resampling": "NEAREST",
+    "purpose": "preserve existing character identity; technical raster size adaptation only"
+  }
+}

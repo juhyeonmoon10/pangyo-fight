@@ -1,0 +1,44 @@
+판교고 방과후 대전 — 구성 요소와 크레딧
+
+IKEMEN GO v1.0.0
+엔진 및 엔진 스크립트: MIT. 원 저작자·기여자 표기는 LICENSES.txt에 보존했습니다.
+기본 화면 자산·음성·글꼴 등은 각각 별도 조건이며 패키지 전체가 MIT인 것은 아닙니다.
+FFmpeg는 LGPL v2.1 동적 연결 구성입니다. 상세 조건은 LICENSES.txt를 참조하세요.
+공식 릴리스: https://github.com/ikemen-engine/Ikemen-GO/releases/tag/v1.0.0
+해당 FFmpeg 소스: https://github.com/ikemen-engine/Ikemen-GO/releases/download/v1.0.0/src_ffmpeg.tar.gz
+공식 Windows ZIP SHA256:
+9338eaeb68599ceb13b0867819a091ea3f92eba58077e800b4540b7a1f9c3731
+
+캐릭터 전투 기반: Phantom.of.the.Server (PotS)
+류 / 사쿠라, 원본 README 날짜 2026-09-13.
+제작자: https://network.mugenguild.com/pots/chars.html
+수정·재사용 안내: https://network.mugenguild.com/pots/faq.html
+원본 README와 전체 기여자 크레딧은 chars/student01/README.txt,
+chars/student02/README.txt, chars/student03/README.txt에 보존했습니다.
+교복·후드는 류, 생활복은 사쿠라의 전투 데이터를 기반으로 합니다.
+각 파일의 사용 조건을 함께 확인하세요.
+기반 캐릭터와 원작 게임의 그림·음성에 관한 권리는 Capcom 등 원 권리자에게 있습니다.
+원본 README는 비영리 사용만 허용하며 상업 목적·판매·유료 접근·개인 수익을 금지합니다.
+몸체 그림을 교체했어도 이 패키지에는 원작 기반 효과·음성과 PotS 파일이 남아 있습니다.
+
+원본 다운로드와 SHA256
+류: https://www.mediafire.com/file/kgmvuigv69pfib1/ryu_pots.zip/file
+346db77b97c31122da9bba327405e29837a71f1e4bab596ee2c6e2cebee53c0b
+사쿠라: https://www.mediafire.com/file/k6ww0mgjovc623p/sakura_pots.zip/file
+70eb22f51bf2f8ac23d04ab1968b782daee39d169d6f389c5b0a3447cf1a8b24
+
+이번 수정
+- 교복·생활복·후드 학생과 기존 류·사쿠라를 함께 고르는 2행×3열 선택 명단.
+- 기존 캐릭터는 큰 선택 초상화만 패널 크기에 맞추고 전투 그림·기술은 보존.
+- 익명 학생의 교복·생활복·후드 몸체 그림 각 48포즈, 선택 화면 그림.
+- 판교고 공개 자료를 참고하여 생성한 중정 배경과 학교용 한글 화면.
+- 개인 1대1 메뉴, 참가자별 닉네임 표시, 키 설정, Windows 실행 도구.
+새 그림은 이 프로젝트에서 AI로 생성했습니다. 실제 학생의 얼굴을 재현하지 않았으며,
+학교 원본 사진은 패키지에 넣지 않았습니다. 전투 기술·판정·기존 효과·음성은 PotS 기반입니다.
+공식 교복·생활복 사양과 중정 참고 출처는 SOURCE-LINKS.txt에 기록했습니다.
+후드 복장은 창작 디자인이며 학교 지정 교복 사양을 의미하지 않습니다.
+학교와 Capcom의 공식 제작·승인 제품을 의미하지 않습니다.
+
+Black Han Sans
+Google Fonts 배포 글꼴, SIL Open Font License.
+저작자와 라이선스 전문: font/school/FONT-LICENSE.txt.

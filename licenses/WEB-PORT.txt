@@ -1,0 +1,25 @@
+판교고 방과후 대전 — 브라우저 빌드
+
+Browser engine: mathmati/fiiight (IKEMEN GO WebAssembly fork), MIT.
+https://github.com/mathmati/fiiight
+Upstream source commit: 9e4b23c1d49638a631d62bca279137704843edcb
+Built with Go 1.24.7, GOOS=js, GOARCH=wasm.
+This is a customized browser build, not the Windows executable.
+
+Project changes:
+- WebRTC ordered stream for menu synchronization and unordered datagrams for GGPO.
+- Browser key transition queue, focus-loss input release, Korean web launcher.
+- Chromium loading-loop yield fix and Chromebook keyboard defaults.
+- Pangyo school assets and four-character roster from the native project.
+
+GGPO: github.com/ikemen-engine/ggpo, revision b08e7d27b7f2.
+The source overlay includes the fork and its original license.
+Engine/source licensing does not replace character or original game asset terms.
+See CONTENT.txt for noncommercial character terms and credits.
+
+CONTENT.txt preserves the earlier native project provenance. Its Windows/FFmpeg
+packaging references describe that source project; the web runtime uses WebGL 2,
+Web Audio and WebAssembly and does not ship the Windows executable or FFmpeg DLLs.
+
+WebRTC uses Google's public STUN service to discover connection candidates.
+There is no TURN relay or central room database in this build.

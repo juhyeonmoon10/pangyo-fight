@@ -1,0 +1,43 @@
+Pangyo Fight approved 16-bit arcade interface / 2026-11-05
+
+The user approved pangyo-sf2-select-concept.png and pangyo-sf2-battle-concept.png.
+assets/fighters/hood-16bit.png and uniform-16bit.png are unmodified production
+portraits generated with built-in imagegen from the approved selection concept.
+They face right and left respectively. Matching *-16bit-face.png files are
+technical face crops. SF2-ART-NOTES.txt, SF2-ASSET-REPORT.json, and the adjacent
+SF2-HOOD-PROMPT.txt / SF2-UNIFORM-PROMPT.txt preserve production provenance.
+The native school-stage artwork was generated from the approved battle concept
+with fighters and HUD removed; its exact built-in imagegen prompt is preserved
+as SF2-SCHOOL-STAGE-PROMPT.txt. The web shell does not display that stage PNG.
+Lifeuniform, Ryu, and Sakura face assets retain the existing fighter identities,
+resized with nearest-neighbor sampling. No new gameplay or selection state is
+represented by the decorative launch roster.
+
+Current web fonts:
+- Press Start 2P, official Google Fonts repository, OFL 1.1.
+  https://github.com/google/fonts/tree/main/ofl/pressstart2p
+  License: PRESSSTART-OFL.txt.
+- Galmuri11 Regular and Bold, official quiple/galmuri repository, OFL 1.1.
+  https://github.com/quiple/galmuri
+  License: GALMURI-OFL.txt.
+
+The following records also cover older retained assets; Bangers and Black Han
+Sans are no longer referenced by the current web-shell stylesheet.
+
+Student portraits and face crops in assets/fighters/ are existing original
+generated artwork from the previous uniform/hoodie update. Built-in imagegen
+was used for that artwork; exact prompts and source PNGs are preserved in
+pangyo-student-art-v2.zip. No student photographs are shipped.
+
+lifeuniform-face.png, ryu-face.png and sakura-face.png are extracted from each
+included fighter's SFF 9000,0 sprite. Original fighter credits and reuse terms
+remain in CONTENT.txt. Character selection is individual one-versus-one.
+
+The web interface is authored HTML/CSS geometry and text. In-game interface
+graphics are generated from data/pangyo/make-art.ps1 and build-ui.mjs.
+Original IKEMEN interface/audio credits remain in IKEMEN.txt and CONTENT.txt.
+
+Bangers Regular v2.100 is sourced from the Google Fonts repository:
+https://github.com/google/fonts/tree/main/ofl/bangers
+Its SIL Open Font License is included as BANGERS-OFL.txt.
+Black Han Sans is the existing Korean typeface included with this game.

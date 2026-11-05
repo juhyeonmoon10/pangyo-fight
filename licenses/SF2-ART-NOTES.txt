@@ -1,0 +1,16 @@
+Pangyo approved SF2-style asset production
+
+Generated with the built-in imagegen tool on 2026-11-05. CLI/API fallback was not used.
+Reference concepts: outputs/pangyo-sf2-select-concept.png and outputs/pangyo-sf2-battle-concept.png.
+Exact generation prompts are the three adjacent *-prompt.txt files.
+
+uniform-portrait.png: isolated approved uniform portrait, faces LEFT, 1161x1355 RGBA.
+hood-portrait.png: isolated approved hood portrait, faces RIGHT, 1169x1345 RGBA.
+school-stage.png: clean approved courtyard without fighters or HUD, 1672x941 opaque.
+Original generated PNGs were copied without artistic pixel edits.
+
+The portraits contain genuine zero-alpha surroundings and nearly opaque interior alpha (mostly 252-253), preserved exactly as generated. Edge alpha includes small values; fit/crop based on a sensible alpha threshold in the runtime adapter rather than counting faint stray pixels. No source-alpha rewriting was performed here.
+
+Five roster faces: uniform-face.png, lifeuniform-face.png, hood-face.png, ryu-face.png, sakura-face.png, all 128x128. Corresponding *-face-25.png files are 25x25 for native sprite use. Uniform and hood are technical square crops of the new portraits. Lifeuniform/Ryu/Sakura retain the existing source faces, resized with nearest neighbor only. Source hashes and exact crop rectangles are in asset-report.json.
+
+No game code, native DEF, combat logic, networking code, or web source was edited by this asset task.
