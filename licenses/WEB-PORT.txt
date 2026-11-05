@@ -21,5 +21,6 @@ CONTENT.txt preserves the earlier native project provenance. Its Windows/FFmpeg
 packaging references describe that source project; the web runtime uses WebGL 2,
 Web Audio and WebAssembly and does not ship the Windows executable or FFmpeg DLLs.
 
-WebRTC uses Google's public STUN service to discover connection candidates.
-There is no TURN relay or central room database in this build.
+Numbered rooms use PeerJS Cloud for signaling and the PeerJS browser client's
+default ICE configuration. The optional manual connection-code mode uses
+Google's public STUN service. The PeerJS distribution license is in PEERJS.txt.

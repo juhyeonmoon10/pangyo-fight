@@ -36,6 +36,38 @@ body:is([data-state=loading],[data-state=error],[data-state=exited]) .launch-pan
 body:is([data-state=error],[data-state=exited]) .loading-panel .loading-callout{font:700 24px/1.5 var(--display)}
 
 .move-guide-toggle { color:var(--gold); border-color:var(--line); }
+.manual-options { margin-top:18px; padding-top:6px; border-top:1px solid var(--line); }
+.manual-options summary {
+  width:fit-content;
+  padding:8px 0;
+  color:var(--muted);
+  font-size:13px;
+  cursor:pointer;
+}
+.manual-options summary:hover { color:var(--ivory); }
+.manual-options .network-note { margin:2px 0 9px; }
+.manual-options .role-buttons { gap:8px; margin-top:0; }
+.manual-options .secondary-button { font-size:14px; }
+.network-panel #room-code,
+.network-panel #room-number {
+  min-width:0;
+  min-height:58px;
+  padding:10px;
+  font:24px/1.45 var(--arcade);
+  letter-spacing:.08em;
+  font-variant-numeric:tabular-nums;
+}
+.network-panel #room-code { color:var(--gold); text-align:center; }
+.network-panel #room-number::placeholder { color:var(--line); opacity:1; }
+.network-panel #room-number[aria-invalid=true] { border-color:#ffbcaa; }
+.network-panel #room-number:disabled { color:var(--muted); }
+.room-code-share .secondary-button { font-size:15px; }
+@container (max-width:420px) {
+  .network-panel #room-code,
+  .network-panel #room-number { font-size:20px; }
+  .room-code-share { flex-wrap:wrap; }
+  .room-code-share .secondary-button { flex:1; }
+}
 .moves-guide {
   width:min(720px, calc(100% - 24px));
   max-width:none;

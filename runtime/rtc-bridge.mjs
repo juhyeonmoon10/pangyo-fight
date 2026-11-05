@@ -2,13 +2,14 @@
 // Match synchronization is verified in browser loopback; Internet/Chromebook QA is separate.
 // Keep IKEMEN's control bytes and GGPO packet bytes unchanged.
 export class IkemenRTCBridge extends EventTarget {
-  constructor(pc, { role, buildId, maxControlBytes = 4 * 1024 * 1024, maxPackets = 256 } = {}) {
+  constructor(pc, { role, buildId, nickname = '', controlId = 0, rollbackId = 1, maxControlBytes = 4 * 1024 * 1024, maxPackets = 256 } = {}) {
     super();
     this.listeners = [];
     if (!['host', 'guest'].includes(role) || !buildId) throw new TypeError('role and content buildId required');
     this.pc = pc;
     this.role = role;
     this.buildId = buildId;
+    this.peerNickname = '';
     this.maxControlBytes = maxControlBytes;
     this.maxPackets = maxPackets;
     this.controlChunks = [];
@@ -22,10 +23,10 @@ export class IkemenRTCBridge extends EventTarget {
 
     // Negotiated IDs are identical on both peers. No datachannel-event race.
     this.control = pc.createDataChannel('ikemen-control', {
-      negotiated: true, id: 0, ordered: true, protocol: 'pangyo-ikemen-v1',
+      negotiated: true, id: controlId, ordered: true, protocol: 'pangyo-ikemen-v1',
     });
     this.rollback = pc.createDataChannel('ikemen-rollback', {
-      negotiated: true, id: 1, ordered: false, maxRetransmits: 0, protocol: 'pangyo-ggpo-v1',
+      negotiated: true, id: rollbackId, ordered: false, maxRetransmits: 0, protocol: 'pangyo-ggpo-v1',
     });
     for (const channel of [this.control, this.rollback]) {
       channel.binaryType = 'arraybuffer';
@@ -35,7 +36,7 @@ export class IkemenRTCBridge extends EventTarget {
       channel.addEventListener('bufferedamountlow', () => this.dispatchEvent(new Event('writable')));
     }
     this.control.addEventListener('open', () => {
-      this.control.send(JSON.stringify({ protocol: 1, buildId, role }));
+      this.control.send(JSON.stringify({ protocol: 1, buildId, role, nickname }));
       this.checkReady();
     });
     this.rollback.addEventListener('open', () => this.checkReady());
@@ -84,6 +85,9 @@ export class IkemenRTCBridge extends EventTarget {
         const hello = JSON.parse(data);
         if (hello.protocol !== 1 || hello.buildId !== this.buildId || hello.role === this.role || !['host', 'guest'].includes(hello.role)) {
           throw new Error('build or role mismatch');
+        }
+        if (typeof hello.nickname === 'string') {
+          this.peerNickname = [...hello.nickname.replace(/[\u0000-\u001f\u007f]/g, '').trim()].slice(0, 16).join('');
         }
         this.peerVerified = true;
         this.checkReady();

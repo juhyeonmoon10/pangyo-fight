@@ -25,11 +25,15 @@
   let toastTimer;
   let session = null;
   let networkEpoch = 0;
+  let networkAbort = null;
+  let networkReturnFocus = "network-name";
 
   function closeNetworkSession() {
     networkEpoch += 1;
     const previous = session;
     session = null;
+    networkAbort?.abort();
+    networkAbort = null;
     previous?.close();
   }
 
@@ -161,8 +165,22 @@
   function networkStatus(message) { $("network-status").textContent = message; }
   function networkError(error) {
     const source = error?.message || String(error);
+    const roomMessages = {
+      ROOM_INVALID: "방 번호는 숫자 6자리예요. 친구에게 받은 번호를 확인해 주세요.",
+      ROOM_NOT_FOUND: "방을 찾을 수 없어요. 번호를 확인하고 친구가 대기실에 있는지 확인해 주세요.",
+      ROOM_FULL: "이미 다른 친구가 참가한 방이에요. 새 방을 만들어 주세요.",
+      ROOM_EXPIRED: "대기 시간이 지나 방이 닫혔어요. 새 방을 만들어 주세요.",
+      ROOM_SERVICE: "방 번호 서비스에 연결할 수 없어요. 다시 시도하거나 ‘연결 코드로 직접 연결’을 선택해 주세요.",
+      ROOM_TIMEOUT: "연결 시간이 지났어요. 친구와 새 방에서 다시 시도해 주세요.",
+      ROOM_BUILD: "게임 버전이 달라요. 두 사람 모두 새로고침한 뒤 새 방을 만들어 주세요.",
+      ROOM_BROWSER: "이 브라우저에서는 온라인 대전을 시작할 수 없어요. 최신 Chrome에서 열어 주세요.",
+      ROOM_CLOSED: "방이 닫혔어요. 친구와 새 방에서 다시 시도해 주세요.",
+      ROOM_CONNECTION: "두 기기가 연결되지 않았어요. 다른 네트워크에서 새 방을 만들어 주세요.",
+    };
     let message = "연결하지 못했어요. 코드를 확인하고 다시 시도해 주세요.";
-    if (/same game build|build.*mismatch/i.test(source)) message = "게임 버전이 달라요. 둘 다 페이지를 새로고침한 뒤 다시 방을 만들어 주세요.";
+    const roomMessage = roomMessages[error?.code] || roomMessages[source];
+    if (roomMessage) message = roomMessage;
+    else if (/same game build|build.*mismatch/i.test(source)) message = "게임 버전이 달라요. 둘 다 페이지를 새로고침한 뒤 다시 방을 만들어 주세요.";
     else if (/Wrong connection code type/i.test(source)) message = "코드 종류가 달라요. 방을 만든 사람은 친구의 응답 코드를, 참가하는 사람은 방의 연결 코드를 넣어 주세요.";
     else if (/Invalid connection code|large|gzip|decompress|JSON|atob/i.test(source)) message = "연결 코드가 올바르지 않아요. PGRTC1.부터 끝까지 다시 복사해 주세요.";
     else if (/timed out|timeout|closed|channel|peer connection/i.test(source)) message = "상대와 연결되지 않았어요. 둘 다 돌아가서 새 코드를 만들고, 같은 Wi-Fi나 다른 네트워크에서도 확인해 주세요.";
@@ -173,21 +191,32 @@
     networkStatus("");
   }
   function clearNetworkError() { $("network-error").hidden = true; $("network-error").textContent = ""; }
+  function showNetworkStep(id, title, backLabel) {
+    for (const view of ["network-choice", "room-host", "room-guest", "network-exchange"]) {
+      $(view).hidden = view !== id;
+    }
+    $("network-title").textContent = title;
+    $("network-back-label").textContent = backLabel;
+  }
   function resetNetwork() {
     closeNetworkSession();
     clearNetworkError();
     networkStatus("");
-    $("network-choice").hidden = false;
-    $("network-exchange").hidden = true;
+    showNetworkStep("network-choice", "온라인 대전", "돌아가기");
+    $("room-share").hidden = true;
+    $("room-code").value = "";
+    $("room-number").value = "";
+    $("room-number").removeAttribute("aria-invalid");
     $("network-share").hidden = true;
-    $("network-code-form").hidden = false;
+    $("network-code-form").hidden = true;
     $("network-in").value = "";
     $("network-out").value = "";
-    for (const id of ["network-host", "network-guest", "network-connect", "network-in"]) $(id).disabled = false;
+    for (const id of ["room-number", "room-connect", "network-connect", "network-in"]) $(id).disabled = false;
   }
   $("network-open").addEventListener("click", () => {
     if (state !== "idle") return;
     resetNetwork();
+    $("manual-options").open = false;
     $("network-name").value = fields[0].value;
     try { $("network-name").value = localStorage.getItem(networkNameKey) || fields[0].value; } catch { /* Optional preference. */ }
     $("network-panel").hidden = false;
@@ -196,80 +225,181 @@
     setState("connecting");
     $("network-name").focus({ preventScroll: true });
   });
-  $("network-back").addEventListener("click", () => {
+  function networkBack() {
     if (state !== "connecting") return;
+    if ($("network-choice").hidden) {
+      resetNetwork();
+      $(networkReturnFocus).focus();
+      return;
+    }
     resetNetwork();
     $("network-panel").hidden = true;
     form.hidden = false;
     overlay.classList.remove("network-mode");
     setState("idle");
     $("network-open").focus({ preventScroll: true });
+  }
+  $("network-back").addEventListener("click", networkBack);
+  window.addEventListener("pagehide", () => {
+    if (state === "connecting") resetNetwork();
   });
-  async function chooseRole(role) {
-    if (state !== "connecting" || session) return;
+
+  async function attachAndStart(active, epoch) {
+    await active.attachEngine(180000);
+    if (epoch !== networkEpoch) return;
+    const players = active.role === "host" ? [active.nickname, active.peerNickname] : [active.peerNickname, active.nickname];
+    document.querySelector(".quick-controls").textContent = "온라인 대전 · 각자 1P 키: WASD + FGH / VBN";
+    startGame(players.map(cleanName), { role: active.role });
+  }
+
+  function showGuestEntry() {
+    networkReturnFocus = "network-guest";
+    showNetworkStep("room-guest", "방 참가", "돌아가기");
+    $("room-number").focus();
+  }
+
+  function recoverConnection(error, guestEntry) {
+    const code = $("room-number").value;
+    resetNetwork();
+    if (guestEntry) {
+      $("room-number").value = code;
+      showGuestEntry();
+    } else {
+      $(networkReturnFocus).focus();
+    }
+    networkError(error);
+  }
+
+  async function beginConnection(role, manual, roomNumber) {
+    if (state !== "connecting" || networkAbort) return;
     const epoch = ++networkEpoch;
+    const controller = new AbortController();
+    networkAbort = controller;
+    const guestEntry = !manual && role === "guest";
+    networkReturnFocus = (manual ? "manual-" : "network-") + role;
     clearNetworkError();
-    $("network-host").disabled = true;
-    $("network-guest").disabled = true;
-    networkStatus("연결을 준비하고 있어요...");
-    let pending;
+    if (manual) {
+      showNetworkStep("network-exchange", "연결 코드로 직접 연결", "연결 취소");
+      networkStatus("연결 코드를 준비하고 있어요…");
+    } else if (guestEntry) {
+      showNetworkStep("room-guest", "방 참가", "참가 취소");
+      $("room-number").disabled = true;
+      $("room-connect").disabled = true;
+      networkStatus("방을 찾고 있어요…");
+    } else {
+      showNetworkStep("room-host", "방 만들기", "방 만들기 취소");
+      networkStatus("방 번호를 만들고 있어요…");
+    }
+    $("network-back").focus();
     try {
-      const [{ ManualIkemenSession }, response] = await Promise.all([
-        import("./runtime/manual-session.mjs"),
-        fetch("./assets/game-manifest.json", { cache: "no-cache" }),
+      const [transport, response] = await Promise.all([
+        manual ? import("./runtime/manual-session.mjs") : import("./runtime/room-session.mjs"),
+        fetch("./assets/game-manifest.json", { cache: "no-cache", signal: controller.signal }),
       ]);
       if (!response.ok) throw new Error("manifest unavailable");
       const manifest = await response.json();
       if (!manifest.buildId) throw new Error("buildId unavailable");
       if (epoch !== networkEpoch) return;
-      pending = new ManualIkemenSession({ role, buildId: manifest.buildId, nickname: cleanName($("network-name").value, role === "host" ? 0 : 1), iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-      session = pending;
-      pending.bridge.addEventListener("close", () => {
-        if (session !== pending) return;
+      const options = { role, buildId: manifest.buildId, nickname: cleanName($("network-name").value, role === "host" ? 0 : 1) };
+      const active = manual
+        ? new transport.ManualIkemenSession({ ...options, iceServers: [{ urls: "stun:stun.l.google.com:19302" }] })
+        : new transport.RoomSession(options);
+      session = active;
+      const lifecycle = manual ? active.bridge : active;
+      lifecycle.addEventListener("close", (event) => {
+        if (session !== active) return;
         if (state === "playing" || state === "loading") failed(new Error("상대와의 연결이 끊겼어요. 페이지를 새로고침한 뒤 다시 연결해 주세요."));
-        else if (state === "connecting") networkError(new Error(pending.bridge.closeReason));
+        else if (state === "connecting") {
+          const reason = event.detail || lifecycle.closeReason;
+          recoverConnection(typeof reason === "string" ? new Error(reason) : reason, guestEntry);
+        }
       });
-      $("network-choice").hidden = true;
-      $("network-exchange").hidden = false;
-      if (role === "host") {
-        networkStatus("친구에게 보낼 코드를 만들고 있어요...");
-        const code = await pending.createOfferCode();
-        if (epoch !== networkEpoch) return;
-        $("network-out").value = code;
-        $("network-out-label").textContent = "친구에게 보낼 연결 코드";
-        $("network-share-help").textContent = "이 코드를 보내고, 친구가 만든 응답 코드를 아래에 넣어 주세요.";
-        $("network-share").hidden = false;
-        $("network-in-label").textContent = "친구에게 받은 응답 코드";
-        $("network-connect").textContent = "연결하고 게임 시작";
-      } else {
-        $("network-in-label").textContent = "방을 만든 친구의 연결 코드";
-        $("network-connect").textContent = "응답 코드 만들기";
-        $("network-in").focus({ preventScroll: true });
+
+      if (manual) {
+        if (role === "host") {
+          const code = await active.createOfferCode();
+          if (epoch !== networkEpoch) return;
+          $("network-out").value = code;
+          $("network-out-label").textContent = "친구에게 보낼 연결 코드";
+          $("network-share-help").textContent = "이 코드를 보내고, 친구가 만든 응답 코드를 아래에 넣어 주세요.";
+          $("network-share").hidden = false;
+          $("network-in-label").textContent = "친구에게 받은 응답 코드";
+          $("network-connect").textContent = "연결하고 게임 시작";
+        } else {
+          $("network-in-label").textContent = "방을 만든 친구의 연결 코드";
+          $("network-connect").textContent = "응답 코드 만들기";
+        }
+        $("network-code-form").hidden = false;
+        networkStatus("");
+        $(role === "host" ? "network-copy" : "network-in").focus();
+        return;
       }
-      networkStatus("");
+
+      if (role === "host") {
+        await transport.createRoom(active, {
+          signal: controller.signal,
+          onCode(code) {
+            if (epoch !== networkEpoch) return;
+            $("room-code").value = code;
+            $("room-share").hidden = false;
+            $("network-title").textContent = "대전 대기실";
+            $("network-back-label").textContent = "방 닫기";
+            networkStatus("친구의 참가를 기다리고 있어요.");
+            if (document.activeElement === $("network-back")) $("room-copy").focus();
+          },
+        });
+        if (epoch !== networkEpoch) return;
+        $("room-share").hidden = true;
+      } else {
+        await transport.joinRoom(active, roomNumber, { signal: controller.signal });
+        if (epoch !== networkEpoch) return;
+      }
+      networkStatus("친구와 연결 중이에요. 두 사람 모두 자기 기기의 1P 키를 사용해요.");
+      await attachAndStart(active, epoch);
     } catch (error) {
-      if (epoch !== networkEpoch) { pending?.close(); return; }
-      session = null;
-      pending?.close();
-      $("network-choice").hidden = false;
-      $("network-exchange").hidden = true;
-      $("network-host").disabled = false;
-      $("network-guest").disabled = false;
-      networkError(error);
+      if (epoch === networkEpoch) recoverConnection(error, guestEntry);
     }
   }
-  $("network-host").addEventListener("click", () => chooseRole("host"));
-  $("network-guest").addEventListener("click", () => chooseRole("guest"));
-  $("network-copy").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText($("network-out").value);
-      toast("연결 코드를 복사했어요. 친구에게 보내 주세요.");
-    } catch {
-      $("network-out").focus();
-      $("network-out").select();
-      toast("선택된 코드를 Ctrl+C로 복사해 주세요.");
-    }
+
+  $("network-host").addEventListener("click", () => beginConnection("host", false));
+  $("network-guest").addEventListener("click", () => { clearNetworkError(); showGuestEntry(); });
+  $("manual-host").addEventListener("click", () => beginConnection("host", true));
+  $("manual-guest").addEventListener("click", () => beginConnection("guest", true));
+  $("room-number").addEventListener("input", () => {
+    clearNetworkError();
+    $("room-number").removeAttribute("aria-invalid");
   });
+  $("room-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (networkAbort) return;
+    const input = $("room-number");
+    const code = input.value.normalize("NFKC").replace(/[\s-]/g, "");
+    if (!/^\d{6}$/.test(code)) {
+      input.setAttribute("aria-invalid", "true");
+      $("network-error").textContent = "방 번호는 숫자 6자리예요. 친구에게 받은 번호를 확인해 주세요.";
+      $("network-error").hidden = false;
+      input.focus();
+      return;
+    }
+    input.value = code;
+    beginConnection("guest", false, code);
+  });
+
+  async function copyCode(inputId, description) {
+    const input = $(inputId);
+    const epoch = networkEpoch;
+    try {
+      await navigator.clipboard.writeText(input.value);
+      if (epoch === networkEpoch) toast(description + " 복사했어요. 친구에게 보내 주세요.");
+    } catch {
+      if (epoch !== networkEpoch) return;
+      input.focus();
+      input.select();
+      toast("선택한 내용을 복사해 친구에게 보내 주세요.");
+    }
+  }
+  $("room-copy").addEventListener("click", () => copyCode("room-code", "방 번호를"));
+  $("network-copy").addEventListener("click", () => copyCode("network-out", "연결 코드를"));
   $("network-code-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const active = session;
@@ -291,23 +421,21 @@
         $("network-share").hidden = false;
         $("network-code-form").hidden = true;
         networkStatus("친구의 연결을 기다리고 있어요. 연결되면 각자 1P 키로 플레이해요.");
+        $("network-copy").focus();
       } else {
         await active.acceptAnswerCode(code);
         if (epoch !== networkEpoch) return;
         networkStatus("친구와 연결 중이에요. 연결되면 각자 1P 키로 플레이해요.");
       }
-      await active.attachEngine(180000);
-      if (epoch !== networkEpoch) return;
-      const players = active.role === "host" ? [active.nickname, active.peerNickname] : [active.peerNickname, active.nickname];
-      document.querySelector(".quick-controls").textContent = "온라인 대전 · 각자 1P 키: WASD + FGH / VBN";
-      startGame(players.map(cleanName), { role: active.role });
+      await attachAndStart(active, epoch);
     } catch (error) {
       if (epoch !== networkEpoch) return;
       // A failed code can be edited. Once SDP was accepted, retry with a fresh peer.
-      if (active.bridge.closed || active.pc.remoteDescription) resetNetwork();
+      if (active.bridge.closed || active.pc.remoteDescription) { recoverConnection(error, false); return; }
       $("network-connect").disabled = false;
       $("network-in").disabled = false;
       networkError(error);
+      $("network-in").focus();
     }
   });
 
@@ -409,6 +537,9 @@
       toggleGuide(false);
       event.stopImmediatePropagation();
       if (state === "playing") canvas.focus({ preventScroll: true });
+    } else if (event.key === "Escape" && state === "connecting") {
+      event.preventDefault();
+      if (!event.repeat) networkBack();
     }
   });
   canvas.addEventListener("pointerdown", () => canvas.focus({ preventScroll: true }));

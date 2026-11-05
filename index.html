@@ -81,7 +81,7 @@
             </form>
 
             <section id="network-panel" class="network-panel" aria-labelledby="network-title" hidden>
-              <button id="network-back" class="back-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6"/></svg>돌아가기</button>
+              <button id="network-back" class="back-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6"/></svg><span id="network-back-label">돌아가기</span></button>
               <h2 id="network-title">온라인 대전</h2>
               <div id="network-choice">
                 <label class="network-name" for="network-name">내 플레이어 이름</label>
@@ -90,7 +90,33 @@
                   <button id="network-host" class="start-button" type="button">방 만들기</button>
                   <button id="network-guest" class="secondary-button" type="button">방 참가</button>
                 </div>
-                <p class="network-note">친구도 이 페이지를 열고, 연결 코드를 서로 보내 주세요.</p>
+                <p class="network-note">한 명이 방을 만들고, 친구는 같은 페이지에서 방 번호 6자리를 입력하세요.</p>
+                <details id="manual-options" class="manual-options">
+                  <summary>연결 코드로 직접 연결</summary>
+                  <p class="network-note">방 번호를 사용할 수 없을 때는 두 사람이 연결 코드와 응답 코드를 한 번씩 주고받으세요.</p>
+                  <div class="role-buttons">
+                    <button id="manual-host" class="secondary-button" type="button">연결 코드 만들기</button>
+                    <button id="manual-guest" class="secondary-button" type="button">연결 코드 입력</button>
+                  </div>
+                </details>
+              </div>
+              <div id="room-host" hidden>
+                <div id="room-share" hidden>
+                  <label for="room-code">친구에게 보낼 방 번호</label>
+                  <div class="code-share room-code-share">
+                    <input id="room-code" type="text" readonly dir="ltr" aria-describedby="room-share-help">
+                    <button id="room-copy" class="secondary-button" type="button">번호 복사</button>
+                  </div>
+                  <p id="room-share-help" class="network-note">친구가 온라인 대전에서 ‘방 참가’를 누르고 이 번호를 입력하면 대전이 시작돼요.</p>
+                </div>
+              </div>
+              <div id="room-guest" hidden>
+                <form id="room-form" autocomplete="off" novalidate>
+                  <label for="room-number">친구에게 받은 방 번호</label>
+                  <input id="room-number" name="room-number" type="text" inputmode="numeric" maxlength="32" spellcheck="false" placeholder="000000" autocomplete="off" enterkeyhint="go" dir="ltr" aria-describedby="room-entry-help network-error">
+                  <p id="room-entry-help" class="network-note">숫자 6자리를 입력하거나 붙여넣으세요.</p>
+                  <button id="room-connect" class="start-button" type="submit">참가하기</button>
+                </form>
               </div>
               <div id="network-exchange" hidden>
                 <div id="network-share" hidden>
