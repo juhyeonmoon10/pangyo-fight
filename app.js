@@ -17,6 +17,8 @@
   const retry = $("retry-button");
   const guide = $("controls-guide");
   const guideButton = $("controls-toggle");
+  const movesGuide = $("moves-guide");
+  const movesButton = $("moves-toggle");
   const storageKey = "pangyo-fight:players";
   const networkNameKey = "pangyo-fight:network-name";
   let state = "idle";
@@ -315,6 +317,93 @@
     requestAnimationFrame(fitFrame);
   }
   guideButton.addEventListener("click", () => toggleGuide(guide.hidden));
+
+  function selectFighter(fighter) {
+    for (const button of $("moves-roster").children) {
+      button.setAttribute("aria-pressed", String(button.dataset.fighter === fighter.id));
+    }
+    $("moves-fighter-title").textContent = fighter.label + " 기술";
+    const content = document.createDocumentFragment();
+    for (const group of window.PangyoMoves.styles[fighter.style]) {
+      const section = document.createElement("section");
+      section.className = "moves-section";
+      const heading = document.createElement("h4");
+      heading.textContent = group.label;
+      const list = document.createElement("dl");
+      for (const move of group.moves) {
+        const row = document.createElement("div");
+        const name = document.createElement("dt");
+        const description = document.createElement("dd");
+        const command = document.createElement("strong");
+        name.textContent = move.name;
+        command.textContent = move.command;
+        description.append(command);
+        if (move.note) {
+          const note = document.createElement("small");
+          note.textContent = move.note;
+          description.append(note);
+        }
+        row.append(name, description);
+        list.append(row);
+      }
+      section.append(heading, list);
+      content.append(section);
+    }
+    $("moves-list").replaceChildren(content);
+  }
+
+  function openMoveGuide() {
+    const fighters = window.PangyoMoves?.fighters;
+    if (!fighters?.length) {
+      toast("기술표를 불러오지 못했어요. 페이지를 새로고침해 주세요.");
+      return;
+    }
+    const roster = $("moves-roster");
+    if (!roster.childElementCount) {
+      for (const fighter of fighters) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.fighter = fighter.id;
+        const portrait = document.createElement("img");
+        const portraitId = { uniform: "uniform-16bit", hood: "hood-16bit" }[fighter.id] || fighter.id;
+        portrait.src = fighter.face || `assets/fighters/${portraitId}-face.png`;
+        portrait.alt = "";
+        button.append(portrait, fighter.label);
+        button.addEventListener("click", () => selectFighter(fighter));
+        roster.append(button);
+      }
+      selectFighter(fighters[0]);
+    }
+    // The engine clears held keys on window blur. A modal alone only blurs the canvas.
+    if (state === "playing") window.dispatchEvent(new Event("blur"));
+    movesGuide.showModal();
+    $("moves-scroll").scrollTop = 0;
+  }
+  movesButton.addEventListener("click", openMoveGuide);
+  $("moves-close").addEventListener("click", () => movesGuide.close());
+  movesGuide.addEventListener("close", () => {
+    (state === "playing" ? canvas : movesButton).focus({ preventScroll: true });
+  });
+
+  // The WASM listener registers on window after boot. Keep dialog keystrokes
+  // out of that listener, but allow the browser's normal Tab, Esc and button actions.
+  const movesKeysDown = new Set();
+  function protectMoveGuide(event) {
+    if (movesGuide.open || (event.target === movesButton && ["Enter", "Space"].includes(event.code))) {
+      if (event.type === "keydown") movesKeysDown.add(event.code);
+      else movesKeysDown.delete(event.code);
+      event.stopImmediatePropagation();
+    } else if (movesKeysDown.has(event.code)) {
+      // A dialog-closing key may still be physically held after focus returns.
+      if (event.type === "keyup") movesKeysDown.delete(event.code);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }
+  window.addEventListener("keydown", protectMoveGuide);
+  window.addEventListener("keyup", protectMoveGuide);
+  window.addEventListener("blur", () => movesKeysDown.clear());
+
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !guide.hidden) {
       toggleGuide(false);
